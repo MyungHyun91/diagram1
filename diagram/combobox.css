@@ -1,0 +1,31 @@
+
+._diagram_combobox_body {
+    position: relative;
+    width: 150px;
+}
+
+._diagram_combobox_input {
+    margin-left: 2px;
+    width: calc(100% - 12px);
+    height: 100%;
+}
+
+._diagram_combobox_select {
+    position: absolute;
+    width: 100%;
+    margin-top: 3px;
+    background-color: rgba(100,100,100);
+    z-index: 10000;
+}
+
+._diagram_combobox_select > div {
+    cursor: default;
+    color: white;
+    width: 100%;
+}
+
+._diagram_combobox_select > div:hover {
+    cursor: default;
+    color: yellowgreen;
+    background-color: rgba(0,0,0,0.2);
+}

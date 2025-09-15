@@ -1,0 +1,50 @@
+{
+    "version": 202509090234,
+    "table": 
+    {
+        "version_history": {
+            "desc": "업로드한 버전정보 기록",
+            "column": ["_key", "version", "timestamp"],
+            "key": {"keyPath": "_key", 
+                    "autoIncrement": true, 
+                    "unique": true}
+        },
+        "error_log": {
+            "desc": "오류정보 기록",
+            "column": ["_key", "message", "timestamp"],
+            "key": {"keyPath": "_key", 
+                    "autoIncrement": true, 
+                    "unique": true}
+        },
+        "setting": {
+            "desc": "설정",
+            "column": ["_key", "space"],
+            "key": {"keyPath": "_key", 
+                    "autoIncrement": true, 
+                    "unique": true}
+        },
+        "diagram": {
+            "desc": "도형(클래스, 함수, 메모), 라인(기본선, 점선등)",
+            "column": ["key", "type", "info", "timestamp"],
+            "key": {"keyPath": "key", 
+                    "autoIncrement": false, 
+                    "unique": true},
+            "index": []
+        },
+        "space": {
+            "desc": "상자들을 품은 공간. 상자 하나당 가지고 있는 공간",
+            "column": ["key", "list", "parent", "timestamp"],
+            "key": {"keyPath": "key", 
+                    "autoIncrement": false, 
+                    "unique": true}
+        },
+        "work_history": {
+            "desc": "작업 실시간 저장. ctrl+z 랑 ctrl+y 로 작업 되돌리기 기능위해 추가(카운트 제한하자)",
+            "desc2": "필요한가 모르겠다.",
+            "column": ["_key", "data"],
+            "key": {"keyPath": "_key", 
+                    "autoIncrement": true, 
+                    "unique": true}
+        }
+    }
+}

@@ -1,0 +1,12 @@
+
+.button {
+    
+    position: relative;
+    width: inherit;
+    height: auto;
+}
+
+.checked {
+    background-color: rgba(0,0,0,0.2);
+    transform: scale(0.95);
+}

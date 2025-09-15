@@ -1,0 +1,72 @@
+
+
+.font-size {
+    display: inline-block;
+    width: 60px;  
+    /* position: absolute; */
+    /* height: 300px; */
+}
+
+/* .color-picker {
+    width: 60px;
+    padding: 0px;
+    border: none;
+    background: none;
+    vertical-align: middle;
+} */
+
+.font-style {
+    display: inline-block;
+    text-align: center;
+    width: 30px;
+    background-color: white;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin: 2px;
+    cursor: default;
+    user-select: none;
+}
+.font-style:hover {
+    color:green;
+}
+.font-style-click {
+    background-color: gray;
+    transform: scale(0.95);
+}
+
+.font-style:active {
+    background-color: gray;
+    transform: scale(0.95);
+}
+
+.picker-color {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid whitesmoke;
+    border-radius: 20px;
+    background-color: black;
+    vertical-align: middle;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+.picker-select {
+    /* display: inline-block; */
+    
+}
+.picker-popup {
+    position: absolute;
+    top: 32px;
+    left: 26px;
+    width: 100px;
+    height: 100px;
+    padding-top: 8px;
+    vertical-align: middle;
+    border: 1px solid gray;
+    background-color: beige;
+    box-sizing: border-box;
+    z-index: 20000;
+}
+
+
+

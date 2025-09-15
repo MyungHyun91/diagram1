@@ -1,0 +1,14 @@
+
+/* 패널을 최대크기로 확장 */
+.max_size {
+       
+}
+
+/* 패널을 최소화(hidden) */
+.min_size {
+       
+}
+
+._diagram_panel {
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 1);
+}
