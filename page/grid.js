@@ -1,5 +1,5 @@
 
-import {_MOD, _CONFIG} from "/diagram/diagram.js"
+import {_MOD, _CONFIG} from "../diagram/diagram.js"
 import {_STO, _SETTING, _WIN} from "./main/main.js"
 import {_MAIN as _MEMO} from "./diagram/memo.js"
 import {_MAIN as _SQUARE} from "./diagram/square.js"

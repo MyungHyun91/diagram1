@@ -1,4 +1,4 @@
-import {_MOD} from "/diagram/diagram.js"
+import {_MOD} from "./diagram.js"
 
 export default class _DIAGRAM_INDEXEDDB
 {

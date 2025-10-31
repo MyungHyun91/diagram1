@@ -1,4 +1,4 @@
-import {_MOD, _CONFIG} from "/diagram/diagram.js"
+import {_MOD, _CONFIG} from "../../diagram/diagram.js"
 import {_AXIS} from "../axis.js"
 import {_WIN, _CAP} from "../main/main.js"
 import {_MAIN as _SQUARE} from "./square.js"

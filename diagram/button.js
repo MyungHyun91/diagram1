@@ -1,4 +1,4 @@
-import {_CONFIG} from "/diagram/diagram.js"
+import {_CONFIG} from "./diagram.js"
 
 export default class _DIAGRAM_BUTTON
 {

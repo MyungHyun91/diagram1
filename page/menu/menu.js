@@ -1,4 +1,4 @@
-import {_MOD} from "/diagram/diagram.js"
+import {_MOD, _CONFIG} from "../../diagram/diagram.js"
 import {_WIN, _GRD} from "../main/main.js"
 
 export class _MAIN
@@ -13,16 +13,16 @@ export class _MAIN
         
         this.parentElement.host.style.opacity = 1;
         this.btnList = [
-            {key: "onHide",         type: "action", src:"/resource/icon/menu.svg", tooltip:"리모콘 숨기기"},
-            {key: "onSquare",       type: "toggle", src:"/resource/icon/add_square.png", tooltip:"메모추가"},
-            {key: "onLine",         type: "toggle", src:"/resource/icon/circuit.png", tooltip:"라인추가"},
+            {key: "onHide",         type: "action", src:"/icon/menu.svg", tooltip:"리모콘 숨기기"},
+            {key: "onSquare",       type: "toggle", src:"/icon/add_square.png", tooltip:"메모추가"},
+            {key: "onLine",         type: "toggle", src:"/icon/circuit.png", tooltip:"라인추가"},
             // {key: "onFullscreen",   type: "action", src:"/resource/icon/circuit.png", tooltip:"전체화면on/off"},
-            {key: "onSquare2",      type: "toggle", src:"/resource/icon/square.png", tooltip:"상자추가"},
-            {key: "onFavorite",     type: "toggle", src:"/resource/menu/favorite.png", tooltip:"즐겨찾기 추가"},
-            {key: "onMultiselect",  type: "toggle", src:"/resource/menu/multiselect.png", tooltip:"다중선택"},
-            {key: "onPicture",      type: "toggle", src:"/resource/menu/picture.png", tooltip:"그림추가"},
-            {key: "onGroup",        type: "toggle", src:"/resource/menu/group.png", tooltip:"그룹추가"},
-            {key: "onRemove",       type: "toggle", src:"/resource/menu/remove.png", tooltip:"상자삭제"},
+            {key: "onSquare2",      type: "toggle", src:"/icon/square.png", tooltip:"상자추가"},
+            {key: "onFavorite",     type: "toggle", src:"/menu/favorite.png", tooltip:"즐겨찾기 추가"},
+            {key: "onMultiselect",  type: "toggle", src:"/menu/multiselect.png", tooltip:"다중선택"},
+            {key: "onPicture",      type: "toggle", src:"/menu/picture.png", tooltip:"그림추가"},
+            {key: "onGroup",        type: "toggle", src:"/menu/group.png", tooltip:"그룹추가"},
+            {key: "onRemove",       type: "toggle", src:"/menu/remove.png", tooltip:"상자삭제"},
             // 그룹추가 --> 그룹 칸에 제목수정부분 넣고, 안에 메모, 이미지 넣으면 들어가게
             //  ㄴ 메모, 이미지등 드래그로 추가가능, 밖으로 빼기도 가능. 보더밝게해서 표시
             //  ㄴ 라인 이어진건 밖이랑 연동해야지
@@ -45,7 +45,7 @@ export class _MAIN
         
         // 버튼객체 생성
         for(const btn of this.btnList) {
-            btn.item = await _MOD.button.create(btn.src, ["button"], this.parentElement);
+            btn.item = await _MOD.button.create(_CONFIG.dir.resource + btn.src, ["button"], this.parentElement);
             btn.item.title = btn.tooltip ?? "";
         }
 

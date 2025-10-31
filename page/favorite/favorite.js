@@ -1,4 +1,4 @@
-import {_MOD} from "/diagram/diagram.js"
+import {_MOD, _CONFIG} from "../../diagram/diagram.js"
 import {_WIN, _GRD} from "../main/main.js"
 
 export class _MAIN
@@ -10,7 +10,7 @@ export class _MAIN
 
     async Init()
     {
-        const src = "/resource/menu/favorite.png";
+        const src = _CONFIG.dir.resource + "/menu/favorite.png";
         this.star = await _MOD.button.create(src, ["star"], this.parentElement);
         this.star.title = "즐겨찾기 숨기기";
 

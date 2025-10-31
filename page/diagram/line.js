@@ -1,4 +1,4 @@
-import {_MOD} from "/diagram/diagram.js"
+import {_MOD} from "../../diagram/diagram.js"
 import {_WIN, _GRD} from "../main/main.js"
 
 export class _MAIN 

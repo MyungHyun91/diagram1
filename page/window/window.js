@@ -1,5 +1,5 @@
 
-import {_MOD, _CONFIG} from "/diagram/diagram.js"
+import {_MOD, _CONFIG} from "../../diagram/diagram.js"
 import {_MAN, _MEU, _GRD} from "../main/main.js"
 import {_AXIS} from "../axis.js"
 
