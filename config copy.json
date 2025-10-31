@@ -1,0 +1,10 @@
+{
+    "desc": "설명",
+    "dir": 
+    {
+        "page": "/page",
+        "main": "/page/main/main",
+        "diagram": "/diagram/",
+        "resource": "/resource"
+    }
+}
