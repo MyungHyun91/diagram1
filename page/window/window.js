@@ -2,73 +2,34 @@
 import {_MOD, _CONFIG} from "/diagram/diagram.js"
 import {_MAN, _MEU, _GRD} from "../main/main.js"
 import {_AXIS} from "../axis.js"
-import {_CONTROLLER} from "./controller.js"
 
 
 export class _MAIN extends _AXIS
 {
     constructor()
     {
-        super(0, 0, 0, 0);
+        super();
+        this.type = "window"
         this.scope = { 
-            default: 1, min: 1, max: 4, zoom: 1
+            min: 1, max: 6, zoom: 2 // zoom 은 space 값이 브라우저 1픽셀당 얼마나 차지할지 비율
+            // zoom 이 1 이상이면 브라우저에 크게보이고, zoom 이 1 이하면 브라우저에 작게보이고
         };
         
-        this.grid = {
+        this.background = {
             width: 200, height: 200
         };
-
-        this.cav;
-        this.ctx;
-    }
-
-    get zoom()
-    {
-        return this.scope.zoom;
-    }
-    set zoom(zoom)
-    {
-        if(zoom < this.scope.min) {this.scope.zoom = this.scope.min}
-        else if(zoom > this.scope.max) {this.scope.zoom = this.scope.max}
-        else {this.scope.zoom = zoom;}
-    }
-
-    SpaceX(mouseX)
-    {
-        const line = (this.cav.width/2 - mouseX)*this.zoom;
-        return Math.round(this.x - line);
-    }
-    SpaceY(mouseY)
-    {
-        const line = (this.cav.height/2 - mouseY)*this.zoom;
-        return Math.round(this.y - line);
-    }
-    SpaceLine(windowLine)
-    {
-        return Math.round(windowLine*this.zoom);
-    }
-
-    WindowX(spaceX)
-    {
-        return Math.round((spaceX - this.x)/this.zoom + this.cav.width/2);
-    }
-    WindowY(spaceY)
-    {
-        return Math.round((spaceY - this.y)/this.zoom + this.cav.height/2);
-    }
-    WindowLine(spaceLine)
-    {
-        return Math.round(spaceLine/this.zoom);
+        
     }
 
     async Init()
     {
-        // 1. 캔버스 생성
-        this.cav = await _MOD.element.create("canvas", this.parentElement);
-        this.ctx = this.cav.getContext("2d");
+        // 1. 캔버스 붙이기
+        this.parentElement.appendChild(this.cav);
 
-        // 2. 컨트롤러 생성
-        this.controller = new _CONTROLLER(this);
+        // 2. 보더용 캔버스 붙이기
+        this.cavBorder = document.createElement("canvas");
+        this.ctxBorder = this.cavBorder.getContext("2d");
+        this.parentElement.appendChild(this.cavBorder);
 
         window.addEventListener("resize", (e) =>
         {
@@ -79,39 +40,128 @@ export class _MAIN extends _AXIS
 
     Resize()
     {
-        // const dpr = window.devicePixelRatio || 1;
+        // const dpr = window.devicePixelRatio || 1; // 2일때 고해상도다. 레티나 디스플레이
         const dpr = 1;
         
+        const centerX = this.x + this.width / 2;
+        const centerY = this.y + this.height / 2;
+        
+        this.width = this.WindowToSpace(window.innerWidth * dpr);
+        this.height = this.WindowToSpace(window.innerHeight * dpr);
+        
+        this.x = centerX-this.width/2;
+        this.y = centerY-this.height/2;
+        
+        // 메인 cav 사이즈 조정
         this.cav.width = window.innerWidth * dpr;
         this.cav.height = window.innerHeight * dpr;
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.scale(dpr, dpr);
 
+        // 보더 cav 사이즈 조정
+        this.cavBorder.width = window.innerWidth * dpr;
+        this.cavBorder.height = window.innerHeight * dpr;
+        this.ctxBorder.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctxBorder.scale(dpr, dpr);
+        
         this.Draw();
     }
+
+    get zoom()
+    {
+        return this.scope.zoom;
+    }
+    set zoom(zoom)
+    {
+        if(zoom < this.scope.min || zoom > this.scope.max) {}
+        else {this.scope.zoom = zoom;}
+    }
+
+    /**
+     * 마우스 좌표x 가 상대적으로 space.x 좌표 어느위치인지 반환
+     * @param {*} offsetX 
+     * @returns 
+     */
+    SpaceX(offsetX)
+    {
+        const line = offsetX*this.zoom; // 화면 위치를 zoom 비율로 변환
+        return Math.round(this.x + line);
+        // return this.x + line;
+    }
+    /**
+     * 마우스 좌표y 가 상대적으로 space.y 좌표 어느위치인지 반환
+     * @param {*} offsetY 
+     * @returns 
+     */
+    SpaceY(offsetY)
+    {
+        const line = offsetY*this.zoom;  // 화면 위치를 zoom 비율로 변환
+        return Math.round(this.y + line);
+        // return this.y + line;
+    }
+
+    WindowX(spaceX)
+    {
+        return Math.round((spaceX - this.x)/this.zoom); // zoom 비율을 픽셀비율로 전환
+        // return (spaceX - this.x)/this.zoom;
+    }
+    WindowY(spaceY)
+    {
+        return Math.round((spaceY - this.y)/this.zoom);
+        // return (spaceY - this.y)/this.zoom;
+    }
+
+    /**
+     * space 값을 _WIN pixel 값으로 반환
+     * zoom 은 space 값이 브라우저 1픽셀당 얼마나 차지할지 비율
+     * zoom 이 1 이상이면 브라우저에 크게보이고, zoom 이 1 이하면 브라우저에 작게보이고
+     * @param {*} windowLine 
+     * @returns 
+     */
+    SpaceToWindow(windowLine)
+    {
+        return Math.round(windowLine/this.zoom);
+        // return windowLine*this.zoom;
+    }
+    /**
+     * _WIN pixel 값을 space 값으로 반환
+     * zoom 은 space 값이 브라우저 1픽셀당 얼마나 차지할지 비율
+     * @param {*} windowLine 
+     * @returns 
+     */
+    WindowToSpace(spaceLine)
+    {
+        return Math.round(spaceLine*this.zoom);
+        // return spaceLine/this.zoom;
+    }
+
 
     Draw()
     {
         this.ctx.clearRect(0, 0, this.cav.width, this.cav.height);
         this.DrawBackground();
-
-        for(let line of _GRD.line)
-        {
-            line.Draw();
-        }
-        for(let square of _GRD.square)
-        {
-            square.Draw();
-        }
-        for(let line of _GRD.line)
-        {
-            line.DrawDeleteButton();
-        }
-
+        
         this.DrawPoint(0, 0, "white") // 0점 표시
-        if(this.controller.down.is == true)
+        this.DrawChildren();
+    }
+    // 자식영역 draw
+    DrawChildren()
+    {
+        for(let i=0; i<this.children.length; i++)
         {
-            this.DrawPoint(this.x, this.y, "rgb(200,0,0)");
+            const child = this.children[i];
+            switch(child.type)
+            {
+                case "line":
+                    child.Draw();
+                    break;
+                default:
+                    this.ctx.drawImage(
+                        child.cav, this.WindowX(child.x), this.WindowY(child.y),
+                        this.SpaceToWindow(child.width), this.SpaceToWindow(child.height)
+                    );
+                    break;    
+            }
         }
     }
 
@@ -137,8 +187,11 @@ export class _MAIN extends _AXIS
         return {x: windowX, y: windowY};
     }
 
-    DrawLine(windowX1, windowY1, windowX2, windowY2, color)
+    DrawLine(spaceX1, spaceY1, spaceX2, spaceY2, color)
     {
+        const windowX1=this.WindowX(spaceX1), windowY1=this.WindowY(spaceY1),
+         windowX2=this.WindowX(spaceX2), windowY2=this.WindowY(spaceY2);
+
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.moveTo(windowX1, windowY1);
@@ -151,8 +204,8 @@ export class _MAIN extends _AXIS
 
     DrawBackground()
     {
-        const width = this.WindowLine(this.grid.width);
-        const height = this.WindowLine(this.grid.height);
+        const width = this.SpaceToWindow(this.background.width);
+        const height = this.SpaceToWindow(this.background.height);
        
         const sx = this.WindowX(0)%width - width; // 그리드 시작x
         const sy = this.WindowY(0)%height - height; // 그리드 시작y
@@ -176,5 +229,23 @@ export class _MAIN extends _AXIS
         }
         this.ctx.stroke();
         this.ctx.restore();
+    }
+
+    // space 기준
+    DrawBorder(x, y, width, height, color="white")
+    {
+
+        this.ctxBorder.clearRect(0, 0, this.cavBorder.width, this.cavBorder.height);
+        // this.ctx.save();
+        this.ctxBorder.strokeStyle = color;
+        this.ctxBorder.strokeRect(
+            this.WindowX(x), this.WindowY(y),
+            this.SpaceToWindow(width), this.SpaceToWindow(height));
+        // this.ctx.restore();
+    }
+
+    ClearBorder()
+    {
+        this.ctxBorder.clearRect(0, 0, this.cavBorder.width, this.cavBorder.height);
     }
 }

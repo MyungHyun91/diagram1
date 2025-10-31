@@ -2,13 +2,13 @@
 ._diagram_button {
     border-radius: 50%;
     vertical-align: top;
+
 }
 
 ._diagram_button:hover {
-    background-color: rgba(0,0,0,0.2);
+    background-color: rgba(0,0,0,0.5);
 }
 
 ._diagram_button:active {
     transform: scale(0.95);
 }
-

@@ -1,5 +1,8 @@
 import {_MOD} from "/diagram/diagram.js"
-export let _MAN, _STO, _MEU, _WIN, _IFO, _GRD, _SETTING, _EDT;
+import {_CAPTURE} from "../editor/transcanvas.js"
+
+export let _MAN, _STO, _MEU, _WIN, _IFO, _GRD, _SETTING, _EDT, _CAP, _FVO, _PTT;
+
 
 export class _MAIN
 {
@@ -27,11 +30,11 @@ export class _MAIN
         this.window.panel.classList.add("window");
         _WIN = this.window.page;
 
-        // 정보 페이지 호출
-        this.info = await _MOD.panel.create("/page/info/info", this.parentElement);
-        this.info.panel.classList.add("info");
-        this.info.panel.classList.add("hide");
-        _IFO = this.info.page;
+        // 컨트롤러 호출
+        this.controller = await _MOD.script.create("/page/window/controller.js");
+
+        // 캡처
+        _CAP = new _CAPTURE();
 
         // 저장소에서 정보 가져오기
         _SETTING = await _STO.InitSetting();
@@ -41,8 +44,18 @@ export class _MAIN
         this.editor.panel.classList.add("editor");
         _EDT = this.editor.page;
 
+        // 팔레트창 호출
+        this.palette = await _MOD.panel.create("/page/palette/palette", this.parentElement);
+        this.palette.panel.classList.add("palette");
+        _PTT = this.palette.page;
+
+        // 즐겨찾기창 호출
+        this.favorite = await _MOD.panel.create("/page/favorite/favorite", this.parentElement);
+        this.favorite.panel.classList.add("favorite");
+        _FVO = this.favorite.page;
+
         // 맵 로드
-        this.Load(_SETTING.space);
+        await this.Load(_SETTING.space);
     }   
 
     async Load(key)
@@ -55,6 +68,8 @@ export class _MAIN
         // 2. _WIN 에 Draw() 요청 (_WIN 은 상자정보를 _GRD 에서 읽는다.)
         await _WIN.Draw();
     
+        // 3. favorite 로드
+        await _FVO.Load();
     }
 }
 

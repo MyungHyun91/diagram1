@@ -8,6 +8,8 @@ export default class _DIAGRAM_COMBOBOX
 
     async Init(type, style, parentElement)
     {
+        this.type = type;
+
         // 껍질
         this.body = document.createElement("div");
         this.body.classList.add("_diagram_combobox_body");
@@ -18,9 +20,17 @@ export default class _DIAGRAM_COMBOBOX
         this.select.style.display = "none"; // 인라인 스타일 추가
 
         // 입력창
-        this.input = document.createElement("input");
-        this.input.classList.add("_diagram_combobox_input");
-        this.input.type = type ?? "text";
+        if(type == "none")
+        {
+            this.input = document.createElement("div");
+            this.input.classList.add("_diagram_combobox_none");
+        }
+        else
+        {
+            this.input = document.createElement("input");
+            this.input.classList.add("_diagram_combobox_input");
+            this.input.type = type ?? "text";
+        }
 
         // css 파일 추가
         const css = _MOD.CloneCSS("combobox");
@@ -35,6 +45,14 @@ export default class _DIAGRAM_COMBOBOX
         parentElement.appendChild(this.body);
 
         // 이벤트 추가
+        if(this.type == "none")
+        {
+            this.input.addEventListener("mousedown", e =>
+            {
+                e.preventDefault();
+            });
+        }
+        
         this.input.addEventListener("click", e =>
         {
             this.select.style.display = (this.select.style.display == "none")? "block":"none";
@@ -50,9 +68,14 @@ export default class _DIAGRAM_COMBOBOX
             // this.select.style.display = "none";
             e.preventDefault();
             if(e.target === this.select) return;
-            this.input.value = e.target.value;
+            
+            if(this.type == "none") {this.input.textContent = e.target.value;}
+            else {this.input.value = e.target.value;}
             this.select.style.display = "none";
+            const dispEvent = new Event("textChanged");
+            this.input.dispatchEvent(dispEvent);
         });
+
     }
 
     Add(array)
@@ -68,6 +91,14 @@ export default class _DIAGRAM_COMBOBOX
             
             this.select.appendChild(option);
         }
+    }
+
+    OnTextChanged(call)
+    {
+        this.input.addEventListener("textChanged", e =>
+        {
+            call(this.input.textContent);
+        });
     }
 
     static async create(type, style, list, parentElement)

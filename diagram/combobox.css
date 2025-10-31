@@ -4,6 +4,19 @@
     width: 150px;
 }
 
+._diagram_combobox_none {
+    display: inline-block;
+    margin-left: 2px;
+    width: calc(100% - 4px);
+    height: 20px;
+    background-color: aliceblue;
+    vertical-align: middle;
+    border-radius: 4px;
+    text-align: right;
+    line-height: 20px;
+    padding-right: 10px;
+    box-sizing: border-box;
+}
 ._diagram_combobox_input {
     margin-left: 2px;
     width: calc(100% - 12px);

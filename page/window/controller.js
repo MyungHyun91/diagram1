@@ -1,231 +1,209 @@
 
 import {_MAN, _MEU, _GRD, _IFO, _WIN, _EDT, _STO} from "../main/main.js"
 
-export class _CONTROLLER
+export class _MAIN
 {
-    constructor(parent)
+    constructor()
     {
-        this.parent = parent;
-        this.cav = parent.cav;
-        this.ctx = parent.ctx;
-        this.move = {x:null, y:null, hover:null};
-        this.down = {x:null, y:null, item:null, edge:null, is:false};
-        this.up = {item:null, isUpdate:false, line:false};
-        this.check = {list:[]};
-        this.line = {is:false, item:null};
-        this._work = "default"; // work 참조
+    }
 
+    async Init()
+    {
+        // 마우스 이벤트 창 생성
+        this.div = document.createElement("div");
+        // this.div.draggable = "false";
+        this.div.id = "event_div";
+        this.div.style = "position:absolute; " +
+                         "top:0px; left:0px; width: 100%; height: 100%; " +
+                         "z-index: 1000;";
+        document.body.appendChild(this.div);
+
+        this.div.addEventListener("contextmenu", async (e) => 
+        {
+            e.preventDefault();
+        });
         // 맵 확대,축소 및 접속
-        this.cav.addEventListener("wheel", (e) => 
+        this.div.addEventListener("wheel", (e) => 
         {
-            // 1. 최소화에서 휠 계속하면 부모 스페이스로 가기
-            // 2. 상자 클릭상태에서 키우기 -> 상자 스페이스 접속 (스페이스 딱지 붙이자)
-            // 3. 그외. 확대 및 축소
-
-            if(e.deltaY > 0) {this.parent.zoom += 0.2;}
-            else if(e.deltaY < 0) {this.parent.zoom -= 0.2;}
+            if(e.deltaY > 0) {
+                _WIN.zoom += 0.2;
+            }
+            else if(e.deltaY < 0) {
+                _WIN.zoom -= 0.2;
+            }
             else {return;}
-            this.parent.Draw();
+
+            _WIN.Resize();
+            _WIN.Draw();
+            
         }, {passive: true});
-
-        this.cav.addEventListener("mousedown", (e) => 
+        
+        this.div.addEventListener("mousedown", async (e) => 
         {
-            /**
-             * 1. 상자를 눌렀는지 : down.item 에 값 넣기
-             * 2. 상자 모서리를 눌렀는지 : 크기조정 준비
-             * 3. 배경을 눌렀는지 : down.item 에 값 넣기
-             * 4. (추가) 상자안의 버튼(링크등) 클릭
-             */
-            this.down.is = true;
-            this.move.x = e.offsetX;
-            this.move.y = e.offsetY;
-            this.down.x = e.offsetX;
-            this.down.y = e.offsetY;
-            this.down.item = _GRD.FindToPos(_WIN.SpaceX(e.offsetX), _WIN.SpaceY(e.offsetY));
-            this.down.edge = null; // 상자 모서리 드래그 관련 초기화
+            e.preventDefault();
+            const spaceX = _WIN.SpaceX(e.offsetX);
+            const spaceY = _WIN.SpaceY(e.offsetY);
 
-            this.up.isUpdate = false;
+            this.down = {};
+            this.down.timeStamp = e.timeStamp;
+            this.down.offsetX = e.offsetX;
+            this.down.offsetY = e.offsetY;
 
-            if(this.up.item)
+            this.win = {};
+            this.win.spaceX = _WIN.x;
+            this.win.spaceY = _WIN.y;
+
+            const collide = _WIN.IsCollision(spaceX, spaceY);
+            const rootItem = collide.GetRoot();
+            this.collide = {};
+            this.collide.item = collide;
+            this.collide.root = rootItem;
+            this.collide.spaceX = rootItem.x;
+            this.collide.spaceY = rootItem.y;
+            this.collide.spaceWidth = rootItem.width;
+            this.collide.spaceHeight = rootItem.height;
+            this.collide.edge = this.EdgeCheck(spaceX, spaceY, rootItem);
+
+            // root가 window가 아닐경우 상단으로 보이게 위로 올리자
+            if(collide && collide.type != "window")
             {
-                this.down.edge = this.EdgeCheck(
-                    _WIN.SpaceX(e.offsetX), _WIN.SpaceY(e.offsetY), this.up.item);
+                // 1. window.child 배열순서 바꾸기
+                if(_WIN.MoveChild(rootItem))
+                {
+                    // 2. indexeddb space 순서 바꾸기
+                    await _GRD.UpdateSpace();
+                    _WIN.Draw();
+                }
             }
         });
 
-        this.cav.addEventListener("mousemove", (e) => 
+        this.div.addEventListener("mousemove", (e) => 
         {
-            // 선택된 상자 테두리 커서 있을시 마우스이미지 변경
-            if(this.up.item)
-            {
-                const edge = this.EdgeCheck(
-                    _WIN.SpaceX(e.offsetX), _WIN.SpaceY(e.offsetY), this.up.item);
-                if(edge) {_WIN.cav.style.cursor = edge.cursor;}
-                else {_WIN.cav.style.cursor = "default";}
-            }
+            // 상자 모서리 마우스커서 이미지 변경 시작
+            const spaceX = _WIN.SpaceX(e.offsetX);
+            const spaceY = _WIN.SpaceY(e.offsetY);
+            const collide = _WIN.IsCollision(spaceX, spaceY);
 
-            // 상자라인 hover 기능
-            this.Hover(e.offsetX, e.offsetY)
-            if(this.line.is)
+            if(collide && collide.type != "window")
             {
-                _WIN.Draw();
-                _WIN.DrawLine(
-                    _WIN.WindowX(this.line.item.x+this.line.item.width/2), 
-                    _WIN.WindowY(this.line.item.y+this.line.item.height/2),
-                    e.offsetX,
-                    e.offsetY,
-                    "green");
-            }
-           
+                const rootItem = collide.GetRoot();
+                const edge = this.EdgeCheck(spaceX, spaceY, rootItem);
+                this.div.style.cursor = edge.cursor;
 
-            if(this.down.is == false) {return;}
+                // if(rootItem.type === "picture")
+                // {
+                //     // 보더 그려보자
+                //     _WIN.DrawBorder(rootItem.x, rootItem.y, rootItem.width, rootItem.height, "green");
+                // }
+                _WIN.DrawBorder(rootItem.x, rootItem.y, rootItem.width, rootItem.height, "green");
+            }
+            else {
+                this.div.style.cursor = "default";
+                _WIN.ClearBorder();
+            }
+            // 상자 모서리 마우스커서 이미지 변경 종료
+
+            if(!this.down) {return;}
             
-            const rangeX = (e.offsetX-this.move.x)*this.parent.zoom;
-            const rangeY = (e.offsetY-this.move.y)*this.parent.zoom;
-   
-            // 모서리 드래그로 상자 크기변경
-            if(this.down.edge && this.down.edge.cursor != "default")
+            const rangeX = _WIN.WindowToSpace(e.offsetX-this.down.offsetX);
+            const rangeY = _WIN.WindowToSpace(e.offsetY-this.down.offsetY);
+
+            // 모서리 눌러서 상자크기 조절
+            if(this.collide.edge && this.collide.edge.cursor != "default")
             {
-                this.ResizeSquare(rangeX, rangeY, this.down.edge.compass, 
-                    this.up.item);
-                this.up.isUpdate = true;
+                this.ResizeSquare(rangeX, rangeY, this.collide);
+                this.collide.root.Draw();
             }
-            // 체크된 상자 드래그로 옮기기(다중이동, 상자 내 다운)
-            else if(this.up.item && this.down.item == this.up.item)
+            // 상자 탭바 눌러서 이동
+            else if(this.collide.item.isDrag == true)
             {
-                this.up.item.x += rangeX;
-                this.up.item.y += rangeY;
-                this.up.isUpdate = true;
+                this.collide.root.Load({
+                    x: this.collide.spaceX + rangeX,
+                    y: this.collide.spaceY + rangeY
+                });
             }
-            // 맵 드래그로 이동하기
+            // 그 외 눌러서 화면이동
             else
             {
-                this.parent.x -= rangeX;
-                this.parent.y -= rangeY;
+                _WIN.x = this.win.spaceX - rangeX;
+                _WIN.y = this.win.spaceY - rangeY;
             }
-            this.parent.Draw();
-            this.move.x = e.offsetX;
-            this.move.y = e.offsetY;
+           
+            _WIN.Draw();
         });
 
-        this.cav.addEventListener("mouseup", async (e) => 
+        this.div.addEventListener("mouseup", async (e) => 
         {
-            this.down.is = false; // down 초기화
-            const isClick = (Math.abs(this.down.x-e.offsetX) < 10 
-                && Math.abs(this.down.y-e.offsetY) < 10)? true:false;
-            const find = _GRD.FindToPos(
-                this.parent.SpaceX(e.offsetX),
-                this.parent.SpaceY(e.offsetY));
+            if(!this.down) {return;}
+            const spaceX = _WIN.SpaceX(e.offsetX);
+            const spaceY = _WIN.SpaceY(e.offsetY);
+            
+            // 0.2초 이하면 클릭
+            const isClick = (e.timeStamp - this.down.timeStamp <= 200)? true:false;
+            this.down = null; // down 초기화
 
-            // 선택도형 db 업데이트(이동 및 크기변경시)
-            // if(this.up.item && this.down.item == this.up.item && this.up.isUpdate)
-            if(this.up.item && this.up.isUpdate)
+            if(isClick && _MEU.toggle)
             {
-                await _STO.SaveDiagram(this.up.item);
-                this.up.isUpdate = false;
+                await _MEU[_MEU.toggle.key](this.collide.root, spaceX, spaceY);
+            }
+            else if(isClick && this.collide.root.type != "window" &&
+                this.collide.root.type != "line") 
+            {
+                // _EDT.Load(this.collide.item);
+                // _EDT.display = true;
+                this.collide.item.Event("onClick", this.collide); // 2번째 파라미터는 정보
+            }
+            else if(this.collide.root.type != "window")
+            {
+                // 바뀐게 없는데도 저장하고 있다
+                await _STO.SaveDiagram(this.collide.root);
             }
 
-            switch(this.work)
-            {
-                case null:
-                case "default":
-                    if(isClick)
-                    {
-                        // 라인 or 상자 삭제버튼 클릭했는지 판단
-                        if(this.up.item)
-                        {
-                            // 상자삭제버튼 클릭
-                            if(this.up.item.IsDeleteButtonClick(e.offsetX, e.offsetY))
-                            {
-                                if(confirm("정말 삭제하시겠습니까?")){
-                                    await _GRD.DeleteSquare(this.up.item.key);
-                                    this.up.item = null;
-                                }
-                                break;
-                            }
-
-                            // 상자 스페이스 접속버튼 클릭
-                            if(this.up.item.IsSpaceButtonClick(e.offsetX, e.offsetY))
-                            {
-                                await _GRD.Load(this.up.item.key)
-                                break;
-                            }
-
-                            // 라인삭제버튼 클릭
-                            const lines = _GRD.GetLinkedLine(this.up.item.key);
-                            let lineClick = false;
-                            for(let i=0; i<lines.length; i++)
-                            {
-                                if(lines[i].IsDeleteButtonClick(e.offsetX, e.offsetY))
-                                {
-                                    lineClick = true;
-                                    await _GRD.DeleteLine(lines[i].key);
-                                    break;
-                                }
-                            }
-                            if(lineClick) {break;}
-                        }
-                        // 클릭한 부분이 상자가 아니면 선택된 상자 해제
-                        if(this.up.item && this.up.item != find) 
-                        {
-                            this.up.item.checked = false;
-                        }
-                        else if(this.up.item && this.up.item == find)
-                        {
-                            // 같은거 두번클릭시 편집창 호출
-                            _EDT.Load(this.up.item);
-                            _EDT.display = true;
-                            break;
-                        }
-                        // 상자선택
-                        if(find) {
-                            this.up.item = find;
-                            find.checked = true;
-                            _GRD.MoveItemSequence(find.key, -1);
-                        }
-                        else {
-                            this.up.item = null;
-                        }
-                    }
-                    break;
-                case "square":
-                    await _GRD.Add(null, "memo", 
-                        {x: this.parent.SpaceX(e.offsetX),
-                         y: this.parent.SpaceY(e.offsetY)});
-                    _MEU.Toggle(null);
-                    break;
-                case "line":
-                    if(this.line.is == false)
-                    {
-                        if(find) {
-                            this.line.is = true;
-                            this.line.item = find;
-                            find.checked = true;
-                        }
-                    }
-                    else
-                    {    
-                        if(find && this.line.item != find)
-                        {
-                            // 라인 저장
-                            await _GRD.Add(null, "line", 
-                                {squareKey1:this.line.item.key, squareKey2:find.key});
-                           
-                        }
-                        this.line.is = false;
-                        this.line.item.checked = false;
-                        this.line.item = null;
-                        _MEU.Toggle(null);
-                    }
-                    break;
-            }
-            this.parent.Draw();
+            
+            _WIN.Draw();
+            
         });
 
-        this.cav.addEventListener("mouseleave", (e) => 
+        this.div.addEventListener("mouseleave", async (e) => 
         {
-            this.down.is = false;
-            this.Hover();
+            if(!this.down) {return;}
+            // 메모 늘리는중에 화면밖 벗어나면 늘린길이 저장
+            if(this.down && this.collide && this.collide.root.type != "window")
+            {
+                await _STO.SaveDiagram(this.collide.root);
+            }
+            this.down = null;
+            // this.Hover();
+        });
+        this.div.addEventListener("dragover", async (e) => 
+        {
+            if (!e.dataTransfer.types.includes("Files")) return; 
+            e.preventDefault();
+        });
+
+        this.div.addEventListener("drop", async (e) => 
+        {
+            if (!e.dataTransfer.types.includes("Files")) return;
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if(!file) return;
+
+            const spaceX = _WIN.SpaceX(e.offsetX);
+            const spaceY = _WIN.SpaceY(e.offsetY);
+
+            // 이미지
+            if(file.type.startsWith("image/")) {
+
+                await _GRD.Add(null, "picture", {x: spaceX, y: spaceY, file: file});
+            }
+            // 오디오
+            else if(file.type.startsWith("audio/")) {
+
+            }
+            else {
+                
+            }
+            _WIN.Draw();
         });
     }
 
@@ -255,9 +233,26 @@ export class _CONTROLLER
         const square = _GRD.FindToPos(_WIN.SpaceX(offsetX), _WIN.SpaceY(offsetY));
         if(square != this.move.hover) {
             _WIN.Draw();
-            if(square) {square.DrawHover();}
+            if(square) {
+                // square.DrawHover();
+                if(square.IsTitleClick(offsetX, offsetY)) {
+                    square.DrawHoverTitle();
+                }
+                else if(square.IsContentClick(offsetX, offsetY)) {
+                    square.DrawHoverContent();
+                }
+            }
         }
         this.move.hover = square;
+        // isCollision 이 에매하다. 기준이. win.x, win.y 가 움직였는데 못잡아
+        // const collide = _WIN.IsCollision(_WIN.SpaceX(offsetX), _WIN.SpaceY(offsetY));
+        
+        // if(collide && collide.type != "window") {
+        //     _WIN.DrawBorder(collide.rootX, collide.rootY, collide.width, collide.height);
+        // }
+        // else {
+        //     _WIN.ClearBorder();
+        // }
     }
 
     // 상자 모서리에 마우스 커서가 올라가 있는지 체크
@@ -285,45 +280,50 @@ export class _CONTROLLER
         return {compass, cursor};
     }
 
-    
-    ResizeSquare(x, y, compass, square)
+    // this.collide.edge.compass, this.collide.root);
+    ResizeSquare(x, y, collide)
     {
-        switch(compass)
+        if(!collide || !collide.edge || collide.edge == "default") {return;}
+        const square = collide.root;
+        const info = {};
+
+        switch(collide.edge.compass)
         {
             case "nw": // 북서
-                square.x += x;
-                square.y += y;
-                square.width -= x;
-                square.height -= y;
+                info.x = collide.spaceX + x;
+                info.y = collide.spaceY + y;
+                info.width = collide.spaceWidth - x;
+                info.height = collide.spaceHeight - y;
                 break;
             case "es": // 동남
-                square.width += x;
-                square.height += y;
+                info.width = collide.spaceWidth + x;
+                info.height = collide.spaceHeight + y;
                 break;
             case "sw": // 남서
-                square.x += x;
-                square.width -= x;
-                square.height += y;
+                info.x = collide.spaceX + x;
+                info.width = collide.spaceWidth - x;
+                info.height = collide.spaceHeight + y;
                 break;
             case "ne": // 북동
-                square.y += y;
-                square.width += x;
-                square.height -= y;
+                info.y = collide.spaceY + y;
+                info.width = collide.spaceWidth + x;
+                info.height = collide.spaceHeight - y;
                 break;
             case "e": // 동
-                square.width += x;
+                info.width = collide.spaceWidth + x;
                 break;
             case "w": // 서
-                square.x += x;
-                square.width -= x;
+                info.x = collide.spaceX + x;
+                info.width = collide.spaceWidth - x;
                 break;
             case "n": // 북
-                square.y += y;
-                square.height -= y;
+                info.y = collide.spaceY + y;
+                info.height = collide.spaceHeight - y;
                 break;
             case "s": // 남
-                square.height += y;
+                info.height = collide.spaceHeight + y;
                 break;
         }
+        square.Load(info);
     }
 }

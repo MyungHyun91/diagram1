@@ -121,9 +121,8 @@ export class _MAIN
     async SaveDiagram(diagram)
     {
         if(diagram.key)
-        {
-            await this.db.Update("diagram", 
-                {key: diagram.key, info:diagram.info});
+        {   
+            await this.db.Update("diagram", {key: diagram.key, info:diagram.info});
         }
         else
         {

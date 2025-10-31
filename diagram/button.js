@@ -13,9 +13,10 @@ export default class _DIAGRAM_BUTTON
     static async create(src, styleList, parentElement)
     {
         const img = document.createElement("img");
+        img.classList.add("_diagram_button");
         img.src = src;
         // img.alt = "버튼 이미지";
-        img.classList.add("_diagram_button");
+        
         
         for(let style of styleList)
         {

@@ -9,9 +9,12 @@ export class _MAIN
 
     async Init()
     {
-        
+        // 배경색상
+        this.backColorPicker = new _COLOR_PICKER(this.parentElement);
+        this.backColorPicker.select.style.borderRadius = "4px";
+
         // 글자크기
-        this.fontSize = await _MOD.combobox.create("number", "font-size", 
+        this.fontSize = await _MOD.combobox.create("none", "font-size", 
             [
                 {value: 9, title: "9px", selected: true},
                 {value: 11, title: "11px"},
@@ -23,16 +26,6 @@ export class _MAIN
                 {value: 72, title: "72px"},
             ], this.parentElement);
         this.fontSize.input.placeholder = "size";
-        this.fontSize.input.addEventListener("input", e =>
-        {
-            console.log("변경");
-
-        });
-        this.fontSize.select.addEventListener("mouseup", e =>
-        {
-            console.log("mouseup");
-            _EDT.title.page.SetCaret();
-        });
 
         // 글자색상
         this.colorPicker = new _COLOR_PICKER(this.parentElement);
@@ -43,7 +36,6 @@ export class _MAIN
         this.bold.classList.add("font-style");
         this.bold.setAttribute("tabindex", "-1");
         this.bold.style.fontWeight = "bold";
-        
 
         // 이탤릭체
         this.italic = _MOD.element.create("div", this.parentElement);
@@ -52,71 +44,72 @@ export class _MAIN
         this.italic.setAttribute("tabindex", "-1");
         this.italic.style.fontStyle = "italic";
 
-        // 상자삭제
-        this.delete = _MOD.element.create("div", this.parentElement);
-        this.delete.textContent = "삭제";
-        this.delete.classList.add("font-style");
-        this.delete.setAttribute("tabindex", "-1");
-        // this.delete.style.fontWeight = "bold";
-        this.delete.style.color = "red";
-
         // 이벤트
+        this.backColorPicker.SetEvent((color) =>
+        {
+            _EDT.textarea.page.text.style.backgroundColor = color;
+        });
+        this.fontSize.OnTextChanged(size =>
+        {
+            _EDT.textarea.page.StyleUpCaret({fontSize: size+"px"});
+        });
+
+        this.colorPicker.SetEvent((color) =>
+        {
+            _EDT.textarea.page.StyleUpCaret({color: color});
+        });
+
         this.bold.addEventListener("click", e =>
         {
             this.bold.classList.toggle("font-style-click");
-
-            // 눌렸는지 판단.
-            if(this.bold.classList.contains("font-style-click")) 
-            {
-                console.log("볼드체 적용")
-            }
+            const isContain = this.bold.classList.contains("font-style-click");
+            _EDT.textarea.page.StyleUpCaret({fontWeight: (isContain)?"bold":"normal"});
         });
-        this.bold.addEventListener("focus", e =>
-        {
-            console.log("포커싱")
-        });
-
 
         this.italic.addEventListener("click", e =>
         {
             this.italic.classList.toggle("font-style-click");
-            if(this.italic.classList.contains("font-style-click")) 
-            {
-                console.log("이태리체 적용")
-            }
+            const isContain = this.italic.classList.contains("font-style-click");
+            _EDT.textarea.page.StyleUpCaret({fontStyle: (isContain)?"italic":"normal"});
         });
-
-        this.delete.addEventListener("click", e =>
-        {
-            // 상자 삭제
-            _EDT.Delete();
-        });
-
     }
 
-    Get()
+    Set(style)
     {
-        const font = {
-            color: this.colorPicker.value, 
-            fontSize: this.fontSize.input.value + "px", 
-            textDecoration: "none", // none
-            fontStyle: (this.italic.classList.contains("font-style-click"))? "italic":"normal", // normal
-            fontWeight: (this.bold.classList.contains("font-style-click"))? "bold":"normal" // normal
-        };
-        return font;
-    }
+        this.colorPicker.value = style.color ?? "black";
+        if(style.fontSize){
+            this.fontSize.input.textContent = style.fontSize.replace("px", "");
+        }
+        else{
+            this.fontSize.input.textContent = 22;
+        }
 
-    Set(font)
-    {
-        return;
-        // if문으로 해보자
-        this.colorPicker.value = font.color;
-        this.fontSize.input.value = font.fontSize.replace("px", "");
-
-        if(font.fontStyle == "italic") this.italic.classList.add("font-style-click");
+        if(style.fontStyle == "italic") this.italic.classList.add("font-style-click");
         else this.italic.classList.remove("font-style-click");
 
-        if(font.fontWeight == "bold") this.bold.classList.add("font-style-click");
+        if(style.fontWeight == "bold") this.bold.classList.add("font-style-click");
+        else this.bold.classList.remove("font-style-click");
+    }
+    SetBackgroundColor(color)
+    {
+        this.backColorPicker.select.style.backgroundColor = color;
+    }
+
+    Load(style)
+    {
+        this.backColorPicker.select.style.backgroundColor = style.backgroundColor;
+        this.colorPicker.value = style.color ?? "black";
+        if(style.fontSize){
+            this.fontSize.input.textContent = style.fontSize.replace("px", "");
+        }
+        else{
+            this.fontSize.input.textContent = 22;
+        }
+
+        if(style.fontStyle == "italic") this.italic.classList.add("font-style-click");
+        else this.italic.classList.remove("font-style-click");
+
+        if(style.fontWeight == "bold") this.bold.classList.add("font-style-click");
         else this.bold.classList.remove("font-style-click");
     }
 }
@@ -135,7 +128,7 @@ class _COLOR_PICKER
         this.select = _MOD.element.create("div", this.parentElement);
         this.select.classList.add("picker-color");
         this.select.classList.add("picker-select");
-        this.select.setAttribute("tabindex", "-1"); // 포커스 가능하게 변경
+        // this.select.setAttribute("tabindex", "-1"); // 포커스 가능하게 변경
 
         // 팝업
         this.popup = _MOD.element.create("div", this.parentElement);
@@ -152,11 +145,21 @@ class _COLOR_PICKER
         }
         
         // 이벤트
-        this.select.addEventListener("click", e =>
+        this.select.addEventListener("mousedown", e =>
         {
-            console.log("?")
+            e.preventDefault(); // 에디터 캐럿해제 막기위해 선언
+        });
+        this.select.addEventListener("mousedown", e =>
+        {
+            // e.preventDefault();
+          
             this.popup.style.display = "block";
             this.popup.focus();
+        });
+
+        this.popup.addEventListener("mousedown", e =>
+        {
+            e.preventDefault(); // 에디터 캐럿해제 막기위해 선언
         });
         this.popup.addEventListener("click", e =>
         {
@@ -165,6 +168,9 @@ class _COLOR_PICKER
                 this.select.style.backgroundColor = 
                     e.target.style.backgroundColor;
                 this.popup.style.display = "none";
+                if(this.eventCall) {
+                    this.eventCall(e.target.style.backgroundColor);
+                }
             }
         });
         this.popup.addEventListener("focusout", (e) => 
@@ -172,5 +178,17 @@ class _COLOR_PICKER
             if(e.relatedTarget == this.select) return;
             this.popup.style.display = "none";
         });
-    }   
+    }
+    get value()
+    {
+        return this.select.style.backgroundColor;
+    }
+    set value(color)
+    {
+        this.select.style.backgroundColor = color;
+    }
+    SetEvent(call)
+    {
+        this.eventCall = call;
+    }
 }

@@ -123,7 +123,8 @@ export default class _DIAGRAM_INDEXEDDB
         .catch(async (error) =>
         {
             // throw error;
-            alert(error)
+            console.log(error);
+            // alert(error)
         });
     }
 
@@ -157,7 +158,7 @@ export default class _DIAGRAM_INDEXEDDB
         {
             // throw error;
             console.log(error)
-            alert(error)
+            // alert(error)
         });
     }
 
@@ -202,7 +203,7 @@ export default class _DIAGRAM_INDEXEDDB
         {
             // throw error;
             console.log(error)
-            alert(error)
+            // alert(error)
         });
     }
 
@@ -227,7 +228,8 @@ export default class _DIAGRAM_INDEXEDDB
         .catch((error) =>
         {
             // throw error;
-            alert(error)
+            console.log(error);
+            // alert(error)
         });
     }
 

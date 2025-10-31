@@ -1,5 +1,5 @@
 {
-    "version": 202509090234,
+    "version": 202510311748,
     "table": 
     {
         "version_history": {
@@ -21,6 +21,13 @@
             "column": ["_key", "space"],
             "key": {"keyPath": "_key", 
                     "autoIncrement": true, 
+                    "unique": true}
+        },
+        "tab": {
+            "desc": "새 창 열기. json 내보내기 단위",
+            "column": ["key", "favorite_list", "timestamp"],
+            "key": {"keyPath": "key", 
+                    "autoIncrement": false, 
                     "unique": true}
         },
         "diagram": {

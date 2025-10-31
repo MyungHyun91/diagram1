@@ -5,7 +5,6 @@ class _DIAGRAM
     {
         this._key_count = 0;
         this._list = [
-            {script:"canvas"},
             {script:"element"},
             {script:"panel"},
             {script:"page"},
@@ -32,7 +31,6 @@ class _DIAGRAM
                 this._clone[item.script] = cssText;
             }
         }
-
         const panel = await this.panel.create(_CONFIG.dir.main);
         panel.panel.id = "div_main";
     }

@@ -18,25 +18,30 @@ export class _MAIN
         this.checked = false;
         this.key = null;
         this.type = "line";
-        this.info = {};
+        this.info = {
+            x:0, y:0, width:0, height:0,
+            squareKey1:null, squareKey2:null
+        };
     }
-    async Init() {}
-    Load(key, info)
+    Load(info)
     {
-        this.key = key;
+        if(!info.squareKey1 || !info.squareKey2) return;
+        this.key = info.key??this.key;
         for(let name in info)
         {
             this.info[name] = info[name];
         }
-        if(!this.info.squareKey1 || !this.info.squareKey2) return;
-
-        this.square1 = _GRD.FindToKey(this.info.squareKey1);
-        this.square2 = _GRD.FindToKey(this.info.squareKey2);
+        // 상자들 로딩시점이 다 달라서 이런식으로는 힘들다
+        this.square1 = _WIN.FindChild(this.info.squareKey1);
+        this.square2 = _WIN.FindChild(this.info.squareKey2);
     }
 
     Draw()
     {
+        this.square1 = _WIN.FindChild(this.info.squareKey1);
+        this.square2 = _WIN.FindChild(this.info.squareKey2);
         if(!this.square1 || !this.square2) return;
+        
 
         const x1 = _WIN.WindowX(this.square1.x + this.square1.width/2);
         const y1 = _WIN.WindowY(this.square1.y + this.square1.height/2);
@@ -47,62 +52,15 @@ export class _MAIN
         _WIN.ctx.beginPath();
         _WIN.ctx.moveTo(x1, y1);
         _WIN.ctx.lineTo(x2, y2);
-        _WIN.ctx.strokeStyle = "green";
-        // _WIN.ctx.lineWidth = 4;
+        _WIN.ctx.strokeStyle = "silver"; // "green";
+        _WIN.ctx.lineWidth = 2;
         _WIN.ctx.stroke();
-    
-
-        
         _WIN.ctx.restore();
     }
 
-    DrawDeleteButton()
+    IsCollision()
     {
-        if(!this.square1 || !this.square2) return;
-
-        if(this.square1.checked || this.square2.checked)
-        {
-            const x1 = _WIN.WindowX(this.square1.x + this.square1.width/2);
-            const y1 = _WIN.WindowY(this.square1.y + this.square1.height/2);
-            const x2 = _WIN.WindowX(this.square2.x + this.square2.width/2);
-            const y2 = _WIN.WindowY(this.square2.y + this.square2.height/2);
-
-            _WIN.ctx.save();
-
-            // 삭제버튼 그리기
-            _WIN.ctx.beginPath();
-            _WIN.ctx.arc((x1+x2)/2, (y1+y2)/2, 10/_WIN.zoom, 0, Math.PI*2);
-            _WIN.ctx.fillStyle = "red";
-            _WIN.ctx.fill();
-            _WIN.ctx.closePath();
-
-            _WIN.ctx.font = (18/_WIN.zoom) + "px Arial";
-            _WIN.ctx.fillStyle = "white";
-            _WIN.ctx.textAlign = "center"; // 수평 가운데 정렬
-            _WIN.ctx.textBaseline = "middle"; // 수직 가운데 정렬
-            _WIN.ctx.fillText("x", (x1+x2)/2, (y1+y2)/2);
-
-            _WIN.ctx.restore();
-        }
-
+        return;
     }
-
-    IsDeleteButtonClick(clickX, clickY)
-    {
-        const x1 = _WIN.WindowX(this.square1.x + this.square1.width/2);
-        const y1 = _WIN.WindowY(this.square1.y + this.square1.height/2);
-        const x2 = _WIN.WindowX(this.square2.x + this.square2.width/2);
-        const y2 = _WIN.WindowY(this.square2.y + this.square2.height/2);
-        
-        const dx = clickX - (x1+x2)/2;
-        const dy = clickY - (y1+y2)/2;
-        const distance = Math.sqrt(dx*dx + dy*dy);
-
-        if(distance <= 10/_WIN.zoom)
-        {
-            return true;
-        }
-        return false;
-    }    
 
 }

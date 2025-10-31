@@ -1,6 +1,10 @@
 
 import {_MOD, _CONFIG} from "/diagram/diagram.js"
-import {_STO, _SETTING} from "./main/main.js"
+import {_STO, _SETTING, _WIN} from "./main/main.js"
+import {_MAIN as _MEMO} from "./diagram/memo.js"
+import {_MAIN as _SQUARE} from "./diagram/square.js"
+import {_MAIN as _LINE} from "./diagram/line.js"
+import {_MAIN as _PICTURE} from "./diagram/picture.js"
 
 export class _MAIN
 {
@@ -28,19 +32,10 @@ export class _MAIN
         
         if(Array.isArray(list))
         {
-            // 상자 로드
             for(const diagramKey of list)
             {
                 const select = await _STO.SelectDiagram(diagramKey);
-                if(!select || select.type != "memo") {continue;}
-                await this.Add(select.key, select.type, select.info);
-            };
-
-            // 라인 로드
-            for(const diagramKey of list)
-            {
-                const select = await _STO.SelectDiagram(diagramKey);
-                if(!select || select.type != "line") {continue;}
+                if(!select) {continue;}
                 await this.Add(select.key, select.type, select.info);
             };
         }
@@ -78,33 +73,20 @@ export class _MAIN
      * 상자에 연결된 라인찾기
      * @param {diagram.key} squareKey 상자 key
      */
-    GetLinkedLine(squareKey)
+    GetLinkedLine(diagram)
     {
         const lines = [];
-        for(let i=0; i<this.line.length; i++)
+        for(let i=0; i<_WIN.children.length; i++)
         {
-            if(this.line[i].info.squareKey1 == squareKey ||
-                this.line[i].info.squareKey2 == squareKey)
+            const child = _WIN.children[i];
+            if(child.type !== "line") continue;
+            if(child.info.squareKey1 === diagram.key ||
+                child.info.squareKey2 === diagram.key)
             {
-                lines.push(this.line[i]);
+                lines.push(child);
             }
         }
         return lines;
-    }
-
-    // 0:첫번째로, -1:마지막으로
-    MoveItemSequence(findKey, number)
-    {
-        for(let i=0; i<this.square.length; i++)
-        {
-            if(this.square[i].key == findKey) 
-            {
-                const item = this.square.splice(i, 1)[0];
-                const toIntex = (number==-1)?this.square.length:number;
-                this.square.splice(toIntex, 0, item);
-                return;
-            }
-        }
     }
     
     async Add(key, type, info)
@@ -112,76 +94,67 @@ export class _MAIN
         let diagram = null;
         switch(type)
         {
-            case "memo":
-                diagram = await _MOD.script.create(_CONFIG.dir.page + "/diagram/memo.js");
-                diagram.Load(key, info);
-                this.square.push(diagram);
-                // key 없으면 생성
-                if(!key)
-                {
-                    await _STO.SaveDiagram(diagram);
-                }
-                break;
-            case "line":
-                diagram = await _MOD.script.create(_CONFIG.dir.page + "/diagram/line.js");
-                diagram.Load(key, info);
-                this.line.push(diagram);
-                // key 없으면 생성
-                if(!key)
-                {
-                    await _STO.SaveDiagram(diagram);
-                }
-                break;
+            case "memo":    diagram = new _MEMO();      break;
+            case "square":  diagram = new _SQUARE();    break;
+            case "line":    diagram = new _LINE();      break;
+            case "picture":    diagram = new _PICTURE();      break;
+            default: return;
         }
+        info.key = key;
+        await diagram.Load(info);
+        _WIN.AppendChild(diagram);
+        // key 없으면 생성
+        if(!key)
+        {
+            await _STO.SaveDiagram(diagram);
+        }
+
         return diagram;
     }
     
     /**
      * 상자삭제
-     * @param {diagram.key} key 상자 key
+     * @param {diagram} key 상자 key
      */
-    async DeleteSquare(key)
+    async DeleteSquare(diagram)
     {   
-        for(let i=0; i<this.square.length; i++)
-        {
-            if(this.square[i].key == key)
-            {
-                // 1. 라인들 조회
-                const lines = this.GetLinkedLine(key);
-                
-                // 2. 라인삭제
-                for(let i=0; i<lines.length; i++) 
-                {
-                    await this.DeleteLine(lines[i].key);
-                };
-                
-                // 3. db-> diagram, space 에서 상자 삭제
-                await _STO.DeleteDiagram(key);
+        let number = _WIN.children.indexOf(diagram);
+        if(number < 0) return false;
 
-                // 4. 배열에서 제거
-                this.square.splice(i, 1);
-                return;
-            }
-        }
+        // 1. 라인들 조회
+        const lines = this.GetLinkedLine(diagram);
+       
+        // 2. 라인삭제
+        for(let i=0; i<lines.length; i++) 
+        {
+            await this.DeleteLine(lines[i]);
+        };
+        
+        // 3. db-> diagram, space 에서 상자 삭제
+        await _STO.DeleteDiagram(diagram.key);
+
+        // 4. 배열에서 제거
+        number = _WIN.children.indexOf(diagram);
+        _WIN.children.splice(number, 1);
+        return true;
     }
 
     /**
      * 라인삭제
-     * @param {diagram.key} key 상자 key
+     * @param {diagram} key 상자 key
      */
-    async DeleteLine(key)
+    async DeleteLine(diagram)
     {   
-        for(let i=0; i<this.line.length; i++)
-        {
-            if(this.line[i].key == key)
-            {
-                // db-> diagram, space 에서 라인 삭제
-                await _STO.DeleteDiagram(key);
-                // 배열에서 제거
-                this.line.splice(i, 1);
-                return;
-            }
-        }
+        const number = _WIN.children.indexOf(diagram);
+        if(number < 0) return false;
+        
+        // 1. DB에서 제거
+        await _STO.DeleteDiagram(diagram.key);
+
+        // 2. 배열에서 제거
+        _WIN.children.splice(number, 1);
+        
+        return true;
     }
 
     async SpaceOut()
@@ -195,5 +168,21 @@ export class _MAIN
 
         // 맵 초기화
         await this.Load(select.key);
+    }
+
+    async UpdateSpace()
+    {
+        // _WIN 에서 child 목록 가져와서 업데이트
+        const list = [];
+        for(let i=0; i<_WIN.children.length; i++)
+        {
+            const child = _WIN.children[i];
+            list.push(child.key);
+        }
+        
+        const select = await _STO.SelectSpace(this.spaceKey);
+        select.list = list;
+        // 업데이트
+        await _STO.UpdateSpace(select);
     }
 }
