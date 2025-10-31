@@ -89,11 +89,10 @@ export const _MOD = new _DIAGRAM();
 new Promise((response) => {response();})
 .then(async () =>
 {
-    let pathname = window.location.pathname.split("/")[0];
-    if(pathname !== "") pathname  = "/" + pathname;
-    
-    document.body._projectname = pathname;
-
+    let pathname = "";
+    if(window.location.pathname.indexOf("/diagram1") >= 0) {
+        pathname = "/diagram1";
+    }
     // 1. 환경설정 로드
     const response = await fetch(pathname + "/config.json");
     const json = await response.json();
@@ -102,6 +101,7 @@ new Promise((response) => {response();})
     for(const key in _CONFIG.dir)
     {
         _CONFIG.dir[key] = pathname + _CONFIG.dir[key];
+        console.log(_CONFIG.dir[key])
     }
 
     // 2. 모듈 실행
