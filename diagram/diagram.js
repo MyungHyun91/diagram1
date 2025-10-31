@@ -90,7 +90,7 @@ new Promise((response) => {response();})
 .then(async () =>
 {
     // 1. 환경설정 로드
-    const response = await fetch("/config.json");
+    const response = await fetch("../config.json");
     const json = await response.json();
     Object.assign(_CONFIG, structuredClone(json));
 
