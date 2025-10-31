@@ -90,9 +90,11 @@ new Promise((response) => {response();})
 .then(async () =>
 {
     let pathname = "";
+    // 깃허브용 절대경로 추가
     if(window.location.pathname.indexOf("/diagram1") >= 0) {
         pathname = "/diagram1";
     }
+
     // 1. 환경설정 로드
     const response = await fetch(pathname + "/config.json");
     const json = await response.json();
@@ -101,7 +103,6 @@ new Promise((response) => {response();})
     for(const key in _CONFIG.dir)
     {
         _CONFIG.dir[key] = pathname + _CONFIG.dir[key];
-        console.log(_CONFIG.dir[key])
     }
 
     // 2. 모듈 실행
