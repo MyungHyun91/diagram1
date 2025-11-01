@@ -92,7 +92,7 @@ new Promise((response) => {response();})
     let pathname = "";
     // 깃허브용 절대경로 추가
     if(window.location.pathname.indexOf("/diagram1") >= 0) {
-        pathname = "/diagram1";
+        pathname = "/diagram1/";
     }
 
     // 1. 환경설정 로드
