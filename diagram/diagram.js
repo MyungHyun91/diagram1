@@ -96,7 +96,7 @@ new Promise((response) => {response();})
     }
 
     // 1. 환경설정 로드
-    const response = await fetch(pathname + "/config.json");
+    const response = await fetch(pathname + "diagram/config.json");
     const json = await response.json();
     Object.assign(_CONFIG, structuredClone(json));
 
